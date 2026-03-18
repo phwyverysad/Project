@@ -14,7 +14,6 @@ $mainChoice = Read-Host "Enter your choice (1 or 2)"
 
 switch ($mainChoice) {
     "1" {
-        # INSTALL PATH
         $zipPath = "C:\phwyverysad\lock_mic_volume.zip"
        
         Invoke-WebRequest -Uri "https://github.com/plathx/-/releases/download/%E0%B8%88%E0%B8%B9%E0%B8%99%E0%B8%84%E0%B8%AD%E0%B8%A1/lock_mic_volume.zip" -OutFile $zipPath -UseBasicParsing
@@ -31,7 +30,6 @@ switch ($mainChoice) {
         
         Remove-Item -Path $zipPath -Force
         
-        # Percentage selection
         Write-Host "`nSelect lock volume percentage:" -ForegroundColor Cyan
         Write-Host "1. 100%"
         Write-Host "2. 75%"

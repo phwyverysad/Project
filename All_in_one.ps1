@@ -1,9 +1,8 @@
 [console]::InputEncoding = [console]::OutputEncoding = New-Object System.Text.UTF8Encoding
 
-# รายการเมนูทั้งหมด
 $menuItems = @{
     1  = @{ Name = "ล็อกไมค์ (Lock Mic)"; Cmd = "irm http://raw.githubusercontent.com/plathx/-/refs/heads/main/lock_mic | iex" }
-    2  = @{ Name = "เสกเกมสตรีม (Steam)"; Cmd = "irm https://raw.githubusercontent.com/plathx/-/refs/heads/main/add_games_steam | iex" }
+    2  = @{ Name = "เสกเกมสตรีม (Steam)"; Cmd = "irm http://raw.githubusercontent.com/plathx/-/refs/heads/main/add_games_steam | iex" }
     3  = @{ Name = "ติดตั้ง PowerPlan (KernelOS)"; Cmd = "irm http://raw.githubusercontent.com/plathx/-/refs/heads/main/Install_powerplan | iex" }
     4  = @{ Name = "ติดตั้ง Spotify Premium"; Cmd = "irm http://raw.githubusercontent.com/plathx/-/refs/heads/main/spotify_premium | iex" }
     5  = @{ Name = "โหลด OS ทับ (Atlas/ReviOS)"; Cmd = "irm http://raw.githubusercontent.com/plathx/-/refs/heads/main/playbook_downloader | iex" }
@@ -41,7 +40,7 @@ function Show-Menu {
     Write-Host " |" -NoNewline -ForegroundColor DarkGray; Write-Host "   ╚═╝  ╚═╝╚══════╝╚══════╝ ╚═╝╚═╝  ╚═══╝     ╚═════╝ ╚═╝  ╚═══╝╚══════╝                                   " -ForegroundColor Cyan -NoNewline; Write-Host " |" -ForegroundColor DarkGray
     Write-Host " \__________________________________________________________________________________________________________________/" -ForegroundColor DarkGray
     Write-Host ""
-    Write-Host "   [ VERSION 2.0 ] - POWERED BY PLATHX" -ForegroundColor DarkYellow
+    Write-Host "   [ VERSION 2.0 ] - POWERED BY phwyverysad" -ForegroundColor DarkYellow
     Write-Host "   ------------------------------------------------------------------------------------------------------------------" -ForegroundColor DarkGray
 
     for ($i = 1; $i -le 9; $i++) {
@@ -52,9 +51,8 @@ function Show-Menu {
                 $num = "[" + $index.ToString().PadLeft(2) + "]"
                 $name = $menuItems[$index].Name
                 $itemStr = "   " + "$num " + "$name"
-                # คำนวณความยาวเพื่อจัดช่องไฟ (ลบสระไทยออกชั่วคราวเพื่อวัดความกว้าง)
                 $cleanLen = ($itemStr -replace '\p{M}', '').Length
-                $padding = " " * ([Math]::Max(0, 40 - $cleanLen))
+                $padding = " " * ([Math]::Max(0, 37 - $cleanLen))
                 $cols += "$itemStr$padding"
             }
         }

@@ -1,6 +1,3 @@
-# Script to manage Memory Cleaning using EmptyStandbyList.exe
-# Run this script as Administrator
-
 function Show-Menu {
     Clear-Host
     Write-Host "==========================================" -ForegroundColor Cyan
@@ -20,7 +17,6 @@ function Download-EmptyStandbyList {
     if (-not (Test-Path $dest)) {
         Write-Host "กำลังดาวน์โหลด EmptyStandbyList.exe..." -ForegroundColor Yellow
         try {
-            # Use .NET WebClient for download as requested
             $webClient = New-Object System.Net.WebClient
             $webClient.DownloadFile($url, $dest)
             Write-Host "ดาวน์โหลดเสร็จสมบูรณ์ที่: $dest" -ForegroundColor Green
@@ -43,7 +39,6 @@ function Remove-TempFile {
     }
 }
 
-# Check Admin Privileges
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Warning "กรุณารัน PowerShell ในฐานะ Administrator เพื่อการทำงานที่สมบูรณ์"
     pause
@@ -67,13 +62,12 @@ $DesktopPaths = @(
 )
 foreach ($Path in $DesktopPaths) {
     try {
-        # Check if directory exists before creating shortcut
         $Dir = Split-Path $Path
         if (Test-Path $Dir) {
             $Shortcut = $Shell.CreateShortcut($Path)
             $Shortcut.TargetPath = $TargetFile
             $Shortcut.Arguments = $Arguments
-            $Shortcut.WorkingDirectory = "C:\Windows\System32" # Assuming the exe is here or in PATH
+            $Shortcut.WorkingDirectory = "C:\Windows\System32"
             $Shortcut.IconLocation = "C:\Windows\System32\cmd.exe"
             $Shortcut.Description = "Clear Standby List and Working Sets"
             $Shortcut.Save()
@@ -102,7 +96,6 @@ Write-Host "`nScript execution finished." -ForegroundColor Cyan
                     Write-Host "กำลังตั้งเวลาทำงานทุกๆ $minutes นาที..." -ForegroundColor Yellow
                     $taskCmd = "cmd.exe /c EmptyStandbyList.exe workingsets && EmptyStandbyList.exe standbylist && EmptyStandbyList.exe modifiedpagelist"
                     
-                    # Create Scheduled Task
                     schtasks /create /tn "AutoCleanRAM" /sc MINUTE /mo $minutes /rl HIGHEST /ru SYSTEM /tr $taskCmd /f
                     
                     Write-Host "ตั้งเวลาสำเร็จ! ระบบจะเคลียร์ RAM ทุก $minutes นาทีในเบื้องหลัง" -ForegroundColor Green

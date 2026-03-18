@@ -1,13 +1,9 @@
-# สคริปต์ PowerShell สำหรับย่อลิงก์ด้วย is.gd API
-# รองรับการสุ่มชื่อและการตั้งชื่อเอง (Custom Short URL) พร้อมระบบคัดลอกอัตโนมัติ
-
 function Show-MainMenu {
     clear
     Write-Host "========================================" -ForegroundColor Cyan
     Write-Host "      is.gd Link Shortener (PowerShell) " -ForegroundColor Cyan
     Write-Host "========================================" -ForegroundColor Cyan
     
-    # ขั้นที่ 1: รับลิงก์ที่ต้องการย่อ
     $url = Read-Host "กรุณาวางลิงก์ที่ต้องการย่อ"
     if ([string]::IsNullOrWhiteSpace($url)) {
         Write-Host "ข้อผิดพลาด: ลิงก์ห้ามว่าง!" -ForegroundColor Red
@@ -15,7 +11,6 @@ function Show-MainMenu {
         return
     }
 
-    # ขั้นที่ 2: เลือกประเภท
     Write-Host "`nเลือกรูปแบบชื่อลิงก์:" -ForegroundColor Yellow
     Write-Host "1. สุ่มชื่อ (Random)"
     Write-Host "2. ตั้งชื่อเอง (Custom)"
@@ -65,7 +60,6 @@ function Shorten-Link {
             Write-Host "`n----------------------------------------" -ForegroundColor Green
             Write-Host "สำเร็จ! ลิงก์ของคุณคือ: $shortLink" -ForegroundColor Green
             
-            # คัดลอกลิงก์อัตโนมัติ
             $shortLink | Set-Clipboard
             Write-Host "(คัดลอกลิงก์ไปยัง Clipboard เรียบร้อยแล้ว)" -ForegroundColor Gray
             Write-Host "----------------------------------------" -ForegroundColor Green
@@ -75,15 +69,13 @@ function Shorten-Link {
             return $true
         }
         else {
-            # กรณีเกิดข้อผิดพลาดจาก API (เช่น ชื่อซ้ำ)
             if ($response.errormessage -like "*Short URL already in use*") {
                 Write-Host "ข้อผิดพลาด: ชื่อ '$shortName' ถูกใช้ไปแล้ว กรุณาตั้งชื่อใหม่" -ForegroundColor Yellow
                 return $false
             } else {
                 Write-Host "เกิดข้อผิดพลาด: $($response.errormessage)" -ForegroundColor Red
                 Pause
-                return $true # จบการทำงานเพื่อกลับหน้าแรก
-            }
+                return $true
         }
     }
     catch {
@@ -93,7 +85,6 @@ function Shorten-Link {
     }
 }
 
-# วนลูปการทำงานหลัก
 while ($true) {
     Show-MainMenu
 }

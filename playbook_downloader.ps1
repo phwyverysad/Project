@@ -1,15 +1,13 @@
 <#
 .SYNOPSIS
-    OS Playbook Downloader (Improved Version)
 #>
 
 $ErrorActionPreference = "Stop"
 
-# ตรวจสอบว่ารันจากไฟล์หรือรันผ่าน Memory (iex)
 if ($MyInvocation.MyCommand.Path) {
     $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 } else {
-    $ScriptDir = $PWD # ถ้าไม่มีไฟล์ ให้ใช้โฟลเดอร์ปัจจุบันที่เปิด PowerShell อยู่
+    $ScriptDir = $PWD
 }
 Set-Location $ScriptDir
 
@@ -18,7 +16,7 @@ $REVI_URL = "https://github.com/meetrevision/playbook/releases/download/25.10/Re
 
 Function Download-File {
     param([string]$Url, [string]$Name)
-    if ($Url -eq $null -or $Url -eq "") { return } # กันเหนื่อยถ้า URL ว่าง
+    if ($Url -eq $null -or $Url -eq "") { return }
     Write-Host ">>> Downloading: $Name..." -ForegroundColor Cyan
     Invoke-WebRequest -Uri $Url -OutFile "$ScriptDir\$Name" -UseBasicParsing
 }
@@ -37,7 +35,7 @@ $main_choice = Read-Host "Select an option (1-4)"
 $filesToDownload = @()
 
 if ($main_choice -match '^[1-4]$') {
-    # จัดการเลือก AtlasOS Version
+   
     if ($main_choice -in @('1', '2')) {
         Clear-Host
         Write-Host "Select Windows Version for AtlasOS:" -ForegroundColor Yellow
@@ -61,7 +59,7 @@ if ($main_choice -match '^[1-4]$') {
         }
     }
 
-    # เพิ่มไฟล์เข้าคิวตามเงื่อนไข
+   
     if ($main_choice -eq '1') {
         $filesToDownload += ,@($AME_URL, "AME-Beta-v0.8.4.exe")
         $filesToDownload += ,@($atlas[0], $atlas[1])
@@ -77,7 +75,7 @@ if ($main_choice -match '^[1-4]$') {
         $filesToDownload += ,@($AME_URL, "AME-Beta-v0.8.4.exe")
     }
 
-    # เริ่มดาวน์โหลด
+   
     Clear-Host
     foreach ($file in $filesToDownload) {
         Download-File -Url $file[0] -Name $file[1]

@@ -2,7 +2,7 @@ $steamDir = $null
 try {
     $steamDir = (Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam" -ErrorAction Stop).InstallPath
 } catch {
-    $steamDir = "C:\Program Files (x86)\Steam" # ค่าเริ่มต้นถ้าหา Registry ไม่เจอ
+    $steamDir = "C:\Program Files (x86)\Steam"
 }
 
 $steamExe = Join-Path $steamDir "Steam.exe"
@@ -12,7 +12,6 @@ $hasSteam = Test-Path $steamExe
 $hasSteamTools = Test-Path $steamToolsDll
 
 if ((-not $hasSteam) -and (-not $hasSteamTools)) {
-    # กรณี: ไม่มีทั้งคู่
     Write-Host "ยังไม่มี steam และ steamtool กรุณาติดตั้ง steam และ steamtool และล็อกอินให้เรียบร้อย -ForegroundColor Red
     Write-Host "กำลังเปิดหน้าเว็บติดตั้ง Steam และ Steamtools ใน 3 วินาที..." -ForegroundColor Yellow
     Start-Sleep -Seconds 3
@@ -27,7 +26,6 @@ if ((-not $hasSteam) -and (-not $hasSteamTools)) {
     Start-Process "https://store.steampowered.com/about/"
 
 } elseif (-not $hasSteamTools) {
-    # กรณี: มี Steam แล้ว แต่ขาด Steamtools
     Write-Host "ยังไม่มี steamtool กรุณาติดตั้ง steamtool ก่อนรัน -ForegroundColor Red
     Write-Host "กำลังเปิดหน้าเว็บติดตั้ง Steamtools ใน 3 วินาที..." -ForegroundColor Yellow
     Start-Sleep -Seconds 3

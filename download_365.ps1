@@ -1,14 +1,11 @@
-# กำหนดเส้นทางโฟลเดอร์ทำงาน
 $targetPath = "C:\phwyverysad"
 $exePath = "$targetPath\OfficeSetup.exe"
 
-# 1. สร้างโฟลเดอร์ C:\phwyverysad หากยังไม่มี
 if (!(Test-Path $targetPath)) {
     New-Item -ItemType Directory -Path $targetPath | Out-Null
     Write-Host "Created directory: $targetPath" -ForegroundColor Cyan
 }
 
-# 2. ให้ผู้ใช้เลือกภาษา
 Write-Host "--- Microsoft 365 Installer ---" -ForegroundColor Cyan
 Write-Host "1. English [en-US]"
 Write-Host "2. Thai [th-TH]"
@@ -25,12 +22,10 @@ if ($choice -eq "1") {
     exit
 }
 
-# 3. ดาวน์โหลดโดยใช้ .NET พร้อมแสดงความคืบหน้าเป็น %
 Write-Host "Downloading Microsoft 365 Installer..." -ForegroundColor Yellow
 try {
     $webClient = New-Object System.Net.WebClient
     
-    # ผูก Event สำหรับแสดงเปอร์เซ็นต์
     $onDownloadProgress = {
         param($sender, $e)
         $percent = $e.ProgressPercentage
@@ -38,7 +33,6 @@ try {
     }
     $webClient.add_DownloadProgressChanged($onDownloadProgress)
     
-    # เริ่มดาวน์โหลด
     $task = $webClient.DownloadFileAsync($url, $exePath)
     while ($webClient.IsBusy) { Start-Sleep -Milliseconds 100 }
     
@@ -48,22 +42,18 @@ try {
     exit
 }
 
-# 4. ติดตั้ง OfficeSetup.exe แบบเงียบ (Silent Install)
 if (Test-Path $exePath) {
     Write-Host "Installing Microsoft 365 (Silent)... Please wait." -ForegroundColor Magenta
-    # รันแบบเงียบโดยใช้พารามิเตอร์มาตรฐานของ Office Click-to-Run
     $process = Start-Process -FilePath $exePath -ArgumentList "/configure", "/silent" -Wait -PassThru
     Write-Host "Installation process finished." -ForegroundColor Green
 }
 
-# 5. ลบโฟลเดอร์ทำงาน
 Write-Host "Cleaning up... Removing $targetPath" -ForegroundColor Yellow
 if (Test-Path $targetPath) {
     Start-Sleep -Seconds 2
     Remove-Item -Path $targetPath -Recurse -Force
 }
 
-# 6. ถามเรื่องการ Activate
 $activate = Read-Host "Do you want to activate Microsoft 365 now? (y/n)"
 if ($activate -eq "y" -or $activate -eq "Y") {
     Write-Host "Activating Microsoft 365..." -ForegroundColor Cyan

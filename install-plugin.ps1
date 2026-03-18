@@ -1,20 +1,15 @@
-# Anyone seeing this? well don't waste time improving this script.
-# It's messy and just temporary until i get the new version.
-
 param(
-    [string]$DownloadLink # Overwrites the download link (give a direct link)
+    [string]$DownloadLink
 )
 
-## Configure this
 $Host.UI.RawUI.WindowTitle = "add_games_steam"
-$name = "luatools" # automatic first letter uppercase included
+$name = "luatools"
 $link = "https://github.com/madoiscool/ltsteamplugin/releases/latest/download/ltsteamplugin.zip"
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 chcp 65001 > $null
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-# Hidden defines
 $steam = (Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam").InstallPath
 $upperName = $name.Substring(0, 1).ToUpper() + $name.Substring(1).ToLower()
 if ( $DownloadLink ) {
@@ -22,7 +17,6 @@ if ( $DownloadLink ) {
 }
 
 
-#### Logging defines ####
 function Log {
     param ([string]$Type, [string]$Message, [boolean]$NoNewline = $false)
 
@@ -47,29 +41,22 @@ Log "WARN" "Hey! Just letting you know that i'm working on a new version combini
 Log "AUX" "Will include language support on THIS script too, luv y'all brazilians"
 Write-Host
 
-# To hide IEX blue box thing
 $ProgressPreference = 'SilentlyContinue'
 
 
 
 Get-Process steam -ErrorAction SilentlyContinue | Stop-Process -Force
 
-
-#### Requirements part ####
-
-# Steamtools check
-# TODO: Make this prettier?
 $path = Join-Path $steam "dwmapi.dll"
 if ( Test-Path $path ) {
     Log "INFO" "Steamtools already installed"
 }
 else {
-    # Filtering the installation script
     $script = Invoke-RestMethod "https://steam.run"
     $keptLines = @()
 
     foreach ($line in $script -split "`n") {
-        $conditions = @( # Removes lines containing one of those
+        $conditions = @(
             ($line -imatch "Start-Process" -and $line -imatch "steam"),
             ($line -imatch "steam\.exe"),
             ($line -imatch "Start-Sleep" -or $line -imatch "Write-Host"),
@@ -85,7 +72,6 @@ else {
     $SteamtoolsScript = $keptLines -join "`n"
     Log "ERR" "Steamtools not found."
     
-    # Retrying with a max of 5
     for ($i = 0; $i -lt 5; $i++) {
 
         Log "AUX" "Install it at your own risk! Close this script if you don't want to."
@@ -108,17 +94,14 @@ else {
     }
 }
 
-# Millenium check
 $milleniumInstalling = $false
 foreach ($file in @("millennium.dll", "python311.dll")) {
     if (!( Test-Path (Join-Path $steam $file) )) {
         
-        # Ask confirmation to download
         Log "ERR" "Millenium not found, installation process will start in 5 seconds."
         Log "WARN" "Press any key to cancel the installation."
         
         for ($i = $milleniumTimer; $i -ge 0; $i--) {
-            # Wheter a key was pressed
             if ([Console]::KeyAvailable) {
                 Write-Host
                 Log "ERR" "Installation cancelled by user."
@@ -143,31 +126,24 @@ foreach ($file in @("millennium.dll", "python311.dll")) {
 }
 if ($milleniumInstalling -eq $false) { Log "INFO" "Millenium already installed" }
 
-
-
-#### Plugin part ####
-# Ensuring \Steam\plugins
 if (!( Test-Path (Join-Path $steam "plugins") )) {
     New-Item -Path (Join-Path $steam "plugins") -ItemType Directory *> $null
 }
 
 
-$Path = Join-Path $steam "plugins\$name" # Defaulting if no install found
+$Path = Join-Path $steam "plugins\$name"
 
-# Checking for plugin named "$name"
 foreach ($plugin in Get-ChildItem -Path (Join-Path $steam "plugins") -Directory) {
     $testpath = Join-Path $plugin.FullName "plugin.json"
     if (Test-Path $testpath) {
         $json = Get-Content $testpath -Raw | ConvertFrom-Json
         if ($json.name -eq $name) {
             Log "INFO" "Plugin already installed, updating it"
-            $Path = $plugin.FullName # Replacing default path
-            break
+            $Path = $plugin.FullName
         }
     }
 }
 
-# Installation 
 $subPath = Join-Path $env:TEMP "$name.zip"
 
 Log "LOG" "Downloading $name"
@@ -222,12 +198,10 @@ if ( Test-Path $subPath ) {
 Log "OK" "$upperName installed"
 
 
-# Removing beta
 $betaPath = Join-Path $steam "package\beta"
 if ( Test-Path $betaPath ) {
     Remove-Item $betaPath -Recurse -Force
 }
-# Removing potential x32 (kinda greedy but ppl got issues and was hard to fix without knowing it was the issue, ppl don't know what they run)
 $cfgPath = Join-Path $steam "steam.cfg"
 if ( Test-Path $cfgPath ) {
     Remove-Item $cfgPath -Recurse -Force
@@ -237,7 +211,6 @@ Remove-ItemProperty -Path "HKLM:\SOFTWARE\Valve\Steam" -Name "SteamCmdForceX86" 
 Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam" -Name "SteamCmdForceX86" -ErrorAction SilentlyContinue
 
 
-# Toggling the plugin on (+turning off updateChecking to try fixing a bug where steam doesn't start)
 $configPath = Join-Path $steam "ext/config.json"
 if (-not (Test-Path $configPath)) {
     $config = @{
@@ -279,12 +252,9 @@ else {
 Log "OK" "Plugin enabled"
 
 
-# Result showing
 Write-Host
 if ($milleniumInstalling) { Log "WARN" "Steam startup will be longer, don't panic and don't touch anything in steam!" }
 
-
-# Start with the "-clearbeta" argument
 $exe = Join-Path $steam "steam.exe"
 Start-Process $exe -ArgumentList "-clearbeta"
 

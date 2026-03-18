@@ -1,11 +1,9 @@
-# 1. เช็คสิทธิ์ Administrator
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
     Write-Warning "กรุณาเปิด PowerShell แบบ 'Run as Administrator' เพื่อให้อนุญาตการดาวน์โหลดไฟล์ลง C:\Windows"
     break
 }
 
-# 2. ดาวน์โหลด nircmdc.exe ด้วย .NET แบบไม่มีแจ้งเตือน (เงียบ)
 $nircmdPath = "C:\Windows\nircmdc.exe"
 if (-not (Test-Path $nircmdPath)) {
     try {
@@ -18,7 +16,6 @@ if (-not (Test-Path $nircmdPath)) {
     }
 }
 
-# 3. เมนูระบบ
 while ($true) {
     Clear-Host
     Write-Host "=========================================" -ForegroundColor Cyan
@@ -48,7 +45,6 @@ while ($true) {
         '7' { Start-Process "rstrui.exe" }
         '8' { shutdown.exe /r /fw /t 0; break }
         '9' {
-            # เช็คยี่ห้อ
             $sys = (Get-CimInstance Win32_ComputerSystem).Manufacturer
             if ($sys -match "System manufacturer|To be filled|O.E.M|Default") {
                 $sys = (Get-CimInstance Win32_BaseBoard).Manufacturer
@@ -67,7 +63,6 @@ while ($true) {
                 default          { $sys.Split(' ')[0] }
             }
 
-            # จับคู่ปุ่มกด Boot Menu
             $bootKey = switch ($brand) {
                 'MSI'      { 'F11' }
                 'ASUS'     { 'F8' }
@@ -86,7 +81,6 @@ while ($true) {
             Write-Host " ปุ่มเข้า Boot Menu คือ    : กดรัวๆที่ปุ่ม $bootKey" -ForegroundColor Magenta
             Write-Host "-----------------------------------------`n" -ForegroundColor Green
             
-            # ถามยืนยัน y/n
             $rebootConfirm = Read-Host "คุณต้องการเริ่มระบบของคอมพิวเตอร์ใหม่ตอนนี้หรือไม่? (y/n)"
             if ($rebootConfirm -match '^[yY]') {
                 Start-Process -FilePath $nircmdPath -ArgumentList "exitwin reboot"

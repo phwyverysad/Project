@@ -1,4 +1,3 @@
-# Requires Run as Administrator
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Warning "กรุณารัน PowerShell ด้วยสิทธิ์ Administrator (Run as Administrator) เพื่อดำเนินการติดตั้ง..."
     Start-Sleep -Seconds 3
@@ -16,7 +15,6 @@ function Ensure-WorkDir {
 
 function Remove-WorkDir {
     if (Test-Path $global:workDir) {
-        # รอสักครู่เพื่อให้ไฟล์ถูกปลดล็อคจากการติดตั้ง
         Start-Sleep -Seconds 2
         Remove-Item -Path $global:workDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
         Write-Host "[✓] ลบโฟลเดอร์ $global:workDir เรียบร้อยแล้ว`n" -ForegroundColor Green
@@ -31,7 +29,6 @@ function Download-And-Install {
     )
     $filePath = Join-Path $global:workDir $fileName
 
-    # ถอดรหัส URL ของ .NET (Thank you page) เพื่อดึงลิงก์ .exe ตรง
     if ($url -match "thank-you") {
         try {
             $webClient = New-Object System.Net.WebClient
@@ -49,7 +46,6 @@ function Download-And-Install {
         
         Write-Host "[*] กำลังติดตั้ง $fileName แบบเงียบ..." -ForegroundColor Yellow
         if ($type -eq 'exe') {
-            # จัดการ Argument ที่ต่างกันของแต่ละไฟล์
             $args = "/install /quiet /norestart"
             if ($fileName -match 'dxwebsetup') {
                 $args = "/Q"
@@ -59,7 +55,6 @@ function Download-And-Install {
 
             $process = Start-Process -FilePath $filePath -ArgumentList $args -Wait -PassThru -NoNewWindow
             
-            # หาก Argument แบบใหม่ไม่รองรับใน Visual C++ รุ่นเก่า ให้ลองใช้ /q แทน
             if ($fileName -match 'vcredist|highdpimfc|vc_redist' -and $process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
                 Start-Process -FilePath $filePath -ArgumentList "/q /norestart" -Wait -NoNewWindow | Out-Null
             }
@@ -71,7 +66,6 @@ function Download-And-Install {
         }
         Write-Host "[+] ติดตั้ง $fileName สำเร็จ`n" -ForegroundColor Green
     } catch {
-        # แก้ไขจุดที่ทำให้เกิด Parser Error โดยใช้ ${} ครอบตัวแปรเพื่อแยกออกจากเครื่องหมาย :
         $errMsg = $_.Exception.Message
         Write-Host "[-] เกิดข้อผิดพลาดใน ${fileName}: ${errMsg}" -ForegroundColor Red
         Write-Host ""
@@ -200,7 +194,6 @@ function Install-DotNetMenu {
     Remove-WorkDir
 }
 
-# ----------------- MAIN MENU -----------------
 while ($true) {
     Write-Host "`n=========================================" -ForegroundColor Cyan
     Write-Host "        Auto Installer by PowerShell       " -ForegroundColor Yellow
