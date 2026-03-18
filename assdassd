@@ -1,0 +1,75 @@
+Add-Type -AssemblyName System.Windows.Forms
+$FileBrowser = New-Object System.Windows.Forms.OpenFileDialog -Property @{ 
+    InitialDirectory = [Environment]::GetFolderPath('Desktop') 
+    Filter = "All Files (*.*)|*.*"
+    Title = "ตรวจสอบรายชื่อไวรัสทั้งหมด (Table Mode)"
+}
+
+$null = $FileBrowser.ShowDialog()
+$filePath = $FileBrowser.FileName
+
+if (-not $filePath) { Write-Host "[-] ไม่ได้เลือกไฟล์" -ForegroundColor Yellow; exit }
+
+# --- ใส่ API Key ของคุณที่นี่ ---
+$apiKey = "2a359ba5f1ce8ff799adabc8903416c1b6bc9c4bc35a88dfae1e24c2061fd7fd"
+
+# รายการคำต้องห้ามของคุณ
+$blacklist = @("Xworm", "Backdoor", "Dropper", "AsyncRAT", "Njrat", "Stealer", "Spy", "Pyinstaller", "Python", "Expiro", "Rat")
+
+Write-Host "`n[*] กำลังดึงข้อมูลจาก VirusTotal..." -ForegroundColor Cyan
+$fileHash = (Get-FileHash -Path $filePath -Algorithm SHA256).Hash
+$headers = @{ "x-apikey" = $apiKey }
+
+try {
+    $response = Invoke-RestMethod -Uri "https://www.virustotal.com/api/v3/files/$fileHash" -Headers $headers -Method Get
+    $allResults = $response.data.attributes.last_analysis_results.Values | Where-Object { $_.result -ne $null }
+    
+    $finalTable = @()
+    $criticalCount = 0
+
+    foreach ($item in $allResults) {
+        $status = "-" # สถานะปกติ
+        foreach ($word in $blacklist) {
+            if ($item.result -ilike "*$word*") {
+                $status = "!! MATCH ($($word.ToUpper())) !!"
+                $criticalCount++
+                break
+            }
+        }
+
+        $finalTable += [PSCustomObject]@{
+            'ANTIVIRUS ENGINE' = $item.engine_name
+            'DETECTION NAME'   = $item.result
+            'MY WATCHLIST'     = $status
+        }
+    }
+
+    # --- การแสดงผลตาราง ---
+    Write-Host "`n" + ("=" * 100) -ForegroundColor White
+    Write-Host " รายงานการตรวจพบมัลแวร์: $($response.data.attributes.meaningful_name)" -ForegroundColor Cyan
+    Write-Host ("=" * 100) -ForegroundColor White
+
+    if ($finalTable.Count -gt 0) {
+        # แสดงตารางทั้งหมด
+        $finalTable | Sort-Object 'MY WATCHLIST' -Descending | Format-Table -AutoSize
+        
+        Write-Host ("-" * 100) -ForegroundColor Gray
+        Write-Host "สรุปผลการตรวจสอบ:" -ForegroundColor White
+        Write-Host "  - จำนวนค่ายที่ตรวจพบทั้งหมด: $($allResults.Count) ค่าย" -ForegroundColor Yellow
+        Write-Host "  - จำนวนที่ตรงกับคำต้องห้ามของคุณ: $criticalCount รายการ" -ForegroundColor Red
+        
+        if ($criticalCount -gt 0) {
+            Write-Host "`n[!!!] คำเตือน: พบชื่อไวรัสที่อยู่ในลิสต์เฝ้าระวังของคุณ $criticalCount รายการ ไม่ควรใช้ไฟล์นี้" -ForegroundColor Red -BackgroundColor Black
+        }
+    } else {
+        Write-Host "[+] ไฟล์นี้สะอาด ไม่พบประวัติการตรวจเจอไวรัสในฐานข้อมูล" -ForegroundColor Green
+    }
+
+    Write-Host ("=" * 100) -ForegroundColor White
+
+} catch {
+    Write-Host "`n[-] ไม่พบประวัติไฟล์นี้ หรือ API Key ของคุณไม่ถูกต้อง" -ForegroundColor Yellow
+}
+
+Write-Host "`nกด Enter เพื่อจบการทำงาน..."
+Read-Host
